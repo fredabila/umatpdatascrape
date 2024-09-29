@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Info Lookup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+    <div class="container max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-blue-600 text-white py-4 px-6">
+            <h1 class="text-2xl font-bold">Student Lookup</h1>
+        </div>
+        <div class="p-6">
+            <div class="mb-4">
+                <input type="text" id="studentNumber" placeholder="Enter Student Number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button onclick="lookupStudent()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300">Get Student Info</button>
+            
+            <div id="loader" class="hidden mt-4">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"></div>
+            </div>
+            
+            <div class="result mt-6" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function lookupStudent() {
+            const studentNumber = document.getElementById('studentNumber').value;
+            const resultDiv = document.getElementById('result');
+            const loader = document.getElementById('loader');
+            
+            resultDiv.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    loader.classList.add('hidden');
+                    if (data) {
+                        resultDiv.innerHTML = `
+                            <div class="text-center mb-4">
+                                <img src="${data.PhotoUrl}" alt="Student Photo" class="w-32 h-32 rounded-full mx-auto mb-2">
+                                <h2 class="text-xl font-bold">${data.ApplicatantFullName}</h2>
+                                <p class="text-gray-600">${data.StudentNumber}</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="font-semibold">Admitted Programme:</p>
+                                    <p>${data.AdmittedProgrammeId}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Admission Date:</p>
+                                    <p>${new Date(data.AdmittedDate).toDateString()}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Gender:</p>
+                                    <p>${data.GenderName}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Email:</p>
+                                    <p>${data.Email}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Phone:</p>
+                                    <p>${data.PrimaryNumber}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Home Town:</p>
+                                    <p>${data.HomeTown}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Address:</p>
+                                    <p>${data.AddressLine1 || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Religion:</p>
+                                    <p>${data.Religion || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Region:</p>
+                                    <p>${data.Region || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Country:</p>
+                                    <p>${data.Country || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">Date of Birth:</p>
+                                    <p>${data.DateOfBirthDisplay}</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = '<p class="text-center text-red-600">No data found for this student number.</p>';
+                    }
+                })
+                .catch(error => {
+                    loader.classList.add('hidden');
+                    resultDiv.innerHTML = '<p class="text-center text-red-600">An error occurred while fetching data.</p>';
+                    console.error('Error fetching student data:', error);
+                });
+        }
+    </script>
+</body>
+</html>

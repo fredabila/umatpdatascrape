@@ -103,18 +103,19 @@
             const pageStudents = studentData.slice(startIndex, endIndex);
 
             pageStudents.forEach(student => {
+                const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
                 const studentCard = `
                     <div class="bg-gray-50 p-4 rounded-lg shadow">
                         <h3 class="text-lg font-semibold mb-2">${student.ApplicatantFullName}</h3>
                         <p><strong>Student Number:</strong> ${student.StudentNumber}</p>
                         <p><strong>Programme:</strong> ${student.ProgrammeFullName}</p>
                         <p><strong>Campus:</strong> ${student.Campus}</p>
-                        <p><strong>Email:</strong> ${student.Email}</p>
-                        <p><strong>Phone:</strong> ${student.PrimaryNumber}</p>
-                        <p><strong>Gender:</strong> ${student.GenderName}</p>
-                        <p><strong>Date of Birth:</strong> ${new Date(student.DateOfBirth).toLocaleDateString()}</p>
+                        <p><strong>Email:</strong> ${student.Email || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${formattedPhone || 'N/A'}</p>
+                        <p><strong>Gender:</strong> ${student.GenderName || 'N/A'}</p>
+                        <p><strong>Date of Birth:</strong> ${student.DateOfBirth ? new Date(student.DateOfBirth).toLocaleDateString() : 'N/A'}</p>
                         <p><strong>Address:</strong> ${student.AddressLine1 || 'N/A'}</p>
-                        <a href="${getWhatsAppLink(student.PrimaryNumber)}" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">WhatsApp</a>
+                        ${formattedPhone ? `<a href="${getWhatsAppLink(formattedPhone)}" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">WhatsApp</a>` : ''}
                     </div>
                 `;
                 container.innerHTML += studentCard;
@@ -124,10 +125,11 @@
         }
 
         function getWhatsAppLink(phoneNumber) {
-            return `https://wa.me/${formatPhoneNumber(phoneNumber)}`;
+            return `https://wa.me/${phoneNumber}`;
         }
 
         function formatPhoneNumber(phoneNumber) {
+            if (!phoneNumber) return null;
             let cleanNumber = phoneNumber.replace(/\D/g, '');
             if (cleanNumber.startsWith('0')) {
                 cleanNumber = '233' + cleanNumber.slice(1);
@@ -162,7 +164,15 @@
                 return;
             }
 
-            const formattedNumbers = studentData.map(student => formatPhoneNumber(student.PrimaryNumber));
+            const formattedNumbers = studentData
+                .map(student => formatPhoneNumber(student.PrimaryNumber))
+                .filter(number => number !== null);
+
+            if (formattedNumbers.length === 0) {
+                alert('No valid phone numbers found in the current data.');
+                return;
+            }
+
             const numbersText = formattedNumbers.join('\n');
             
             const blob = new Blob([numbersText], { type: 'text/plain' });

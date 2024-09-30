@@ -40,6 +40,9 @@
                 <span id="pageInfo" class="text-gray-600"></span>
                 <button id="nextButton" onclick="changePage(1)" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Next</button>
             </div>
+            <div class="p-6 flex justify-center">
+                <button onclick="exportPhoneNumbers()" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300">Export Phone Numbers</button>
+            </div>
         </div>
     </div>
 
@@ -121,13 +124,17 @@
         }
 
         function getWhatsAppLink(phoneNumber) {
+            return `https://wa.me/${formatPhoneNumber(phoneNumber)}`;
+        }
+
+        function formatPhoneNumber(phoneNumber) {
             let cleanNumber = phoneNumber.replace(/\D/g, '');
             if (cleanNumber.startsWith('0')) {
                 cleanNumber = '233' + cleanNumber.slice(1);
             } else if (!cleanNumber.startsWith('233')) {
                 cleanNumber = '233' + cleanNumber;
             }
-            return `https://wa.me/${cleanNumber}`;
+            return cleanNumber;
         }
 
         function updatePageInfo() {
@@ -148,7 +155,27 @@
             currentPage = Math.max(1, Math.min(currentPage + delta, totalPages));
             displayStudentData();
         }
+
+        function exportPhoneNumbers() {
+            if (studentData.length === 0) {
+                alert('No student data available. Please fetch data first.');
+                return;
+            }
+
+            const formattedNumbers = studentData.map(student => formatPhoneNumber(student.PrimaryNumber));
+            const numbersText = formattedNumbers.join('\n');
+            
+            const blob = new Blob([numbersText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'formatted_phone_numbers.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     </script>
 </body>
 </html>
-

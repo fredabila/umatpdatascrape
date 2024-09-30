@@ -1,123 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student and Guardian Info Lookup</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .loader {
-            border-top-color: #3498db;
-            -webkit-animation: spinner 1.5s linear infinite;
-            animation: spinner 1.5s linear infinite;
-        }
+      .loader {
+        border-top-color: #3498db;
+        -webkit-animation: spinner 1.5s linear infinite;
+        animation: spinner 1.5s linear infinite;
+      }
 
-        @-webkit-keyframes spinner {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
+      @-webkit-keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
         }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
+      }
 
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+      @keyframes spinner {
+        0% {
+          transform: rotate(0deg);
         }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4 py-8">
+  </head>
+  <body
+    class="bg-gray-100 min-h-screen flex items-center justify-center px-4 py-8"
+  >
     <div class="container max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
-            <div class="bg-blue-600 text-white py-4 px-6">
-                <h1 class="text-2xl font-bold">Student and Guardian Lookup</h1>
-            </div>
-            <div class="p-6">
-                <div class="mb-4">
-                    <input type="text" id="studentNumber" placeholder="Enter Student Number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <button onclick="lookupStudent()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300">Get Student and Guardian Info</button>
-                
-                <div id="loader" class="hidden mt-4">
-                    <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"></div>
-                </div>
-            </div>
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <div class="bg-blue-600 text-white py-4 px-6">
+          <h1 class="text-2xl font-bold">Student and Guardian Lookup</h1>
         </div>
-        
-        <div id="studentResult" class="bg-white rounded-lg shadow-lg overflow-hidden mb-6 hidden"></div>
-        <div id="guardianResult" class="bg-white rounded-lg shadow-lg overflow-hidden hidden"></div>
+        <div class="p-6">
+          <div class="mb-4">
+            <input
+              type="text"
+              id="studentNumber"
+              placeholder="Enter Student Number"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onclick="lookupStudent()"
+            class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+          >
+            Get Student and Guardian Info
+          </button>
+
+          <div id="loader" class="hidden mt-4">
+            <div
+              class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="studentResult"
+        class="bg-white rounded-lg shadow-lg overflow-hidden mb-6 hidden"
+      ></div>
+      <div
+        id="guardianResult"
+        class="bg-white rounded-lg shadow-lg overflow-hidden hidden"
+      ></div>
     </div>
 
     <script>
-        function lookupStudent() {
-            const studentNumber = document.getElementById('studentNumber').value;
-            const studentResultDiv = document.getElementById('studentResult');
-            const guardianResultDiv = document.getElementById('guardianResult');
-            const loader = document.getElementById('loader');
-            
-            studentResultDiv.innerHTML = '';
-            guardianResultDiv.innerHTML = '';
-            studentResultDiv.classList.add('hidden');
-            guardianResultDiv.classList.add('hidden');
-            loader.classList.remove('hidden');
+      function lookupStudent() {
+        const studentNumber = document.getElementById("studentNumber").value;
+        const studentResultDiv = document.getElementById("studentResult");
+        const guardianResultDiv = document.getElementById("guardianResult");
+        const loader = document.getElementById("loader");
 
-            const studentApiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
+        studentResultDiv.innerHTML = "";
+        guardianResultDiv.innerHTML = "";
+        studentResultDiv.classList.add("hidden");
+        guardianResultDiv.classList.add("hidden");
+        loader.classList.remove("hidden");
 
-            fetch(studentApiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        displayStudentInfo(data);
-                        if (data.GuardianId) {
-                            fetchGuardianInfo(data.GuardianId);
-                        } else {
-                            loader.classList.add('hidden');
-                            guardianResultDiv.innerHTML = '<p class="text-center text-red-600 p-4">No guardian information available.</p>';
-                            guardianResultDiv.classList.remove('hidden');
-                        }
-                    } else {
-                        loader.classList.add('hidden');
-                        studentResultDiv.innerHTML = '<p class="text-center text-red-600 p-4">No data found for this student number.</p>';
-                        studentResultDiv.classList.remove('hidden');
-                    }
-                })
-                .catch(error => {
-                    loader.classList.add('hidden');
-                    studentResultDiv.innerHTML = '<p class="text-center text-red-600 p-4">An error occurred while fetching student data.</p>';
-                    studentResultDiv.classList.remove('hidden');
-                    console.error('Error fetching student data:', error);
-                });
-        }
+        const studentApiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
 
-        function fetchGuardianInfo(guardianId) {
-            const guardianApiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationGuardianData?guardianId=${guardianId}`;
+        fetch(studentApiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data) {
+              displayStudentInfo(data);
+              if (data.GuardianId) {
+                fetchGuardianInfo(data.GuardianId);
+              } else {
+                loader.classList.add("hidden");
+                guardianResultDiv.innerHTML =
+                  '<p class="text-center text-red-600 p-4">No guardian information available.</p>';
+                guardianResultDiv.classList.remove("hidden");
+              }
+            } else {
+              loader.classList.add("hidden");
+              studentResultDiv.innerHTML =
+                '<p class="text-center text-red-600 p-4">No data found for this student number.</p>';
+              studentResultDiv.classList.remove("hidden");
+            }
+          })
+          .catch((error) => {
+            loader.classList.add("hidden");
+            studentResultDiv.innerHTML =
+              '<p class="text-center text-red-600 p-4">An error occurred while fetching student data.</p>';
+            studentResultDiv.classList.remove("hidden");
+            console.error("Error fetching student data:", error);
+          });
+      }
 
-            fetch(guardianApiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    loader.classList.add('hidden');
-                    if (data) {
-                        displayGuardianInfo(data);
-                    } else {
-                        guardianResultDiv.innerHTML = '<p class="text-center text-red-600 p-4">No guardian data found.</p>';
-                        guardianResultDiv.classList.remove('hidden');
-                    }
-                })
-                .catch(error => {
-                    loader.classList.add('hidden');
-                    guardianResultDiv.innerHTML = '<p class="text-center text-red-600 p-4">An error occurred while fetching guardian data.</p>';
-                    guardianResultDiv.classList.remove('hidden');
-                    console.error('Error fetching guardian data:', error);
-                });
-        }
+      function fetchGuardianInfo(guardianId) {
+        const guardianApiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationGuardianData?guardianId=${guardianId}`;
 
-        function displayStudentInfo(data) {
-            const studentResultDiv = document.getElementById('studentResult');
-            studentResultDiv.innerHTML = `
+        fetch(guardianApiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            loader.classList.add("hidden");
+            if (data) {
+              displayGuardianInfo(data);
+            } else {
+              guardianResultDiv.innerHTML =
+                '<p class="text-center text-red-600 p-4">No guardian data found.</p>';
+              guardianResultDiv.classList.remove("hidden");
+            }
+          })
+          .catch((error) => {
+            loader.classList.add("hidden");
+            guardianResultDiv.innerHTML =
+              '<p class="text-center text-red-600 p-4">An error occurred while fetching guardian data.</p>';
+            guardianResultDiv.classList.remove("hidden");
+            console.error("Error fetching guardian data:", error);
+          });
+      }
+
+      function displayStudentInfo(data) {
+        const studentResultDiv = document.getElementById("studentResult");
+        studentResultDiv.innerHTML = `
                 <div class="bg-blue-600 text-white py-2 px-6">
                     <h2 class="text-xl font-bold">Student Information</h2>
                 </div>
                 <div class="p-6">
                     <div class="text-center mb-4">
-                        <img src="${data.PhotoUrl}" alt="Student Photo" class="w-32 h-32 rounded-full mx-auto mb-2">
-                        <h2 class="text-xl font-bold">${data.ApplicatantFullName}</h2>
+                        <img src="${
+                          data.PhotoUrl
+                        }" alt="Student Photo" class="w-32 h-32 rounded-full mx-auto mb-2">
+                        <h2 class="text-xl font-bold">${
+                          data.ApplicatantFullName
+                        }</h2>
                         <p class="text-gray-600">${data.StudentNumber}</p>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
@@ -147,19 +184,23 @@
                         </div>
                         <div>
                             <p class="font-semibold">Address:</p>
-                            <p>${data.AddressLine1 || 'N/A'}</p>
+                            <p>${data.AddressLine1 || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Religion:</p>
-                            <p>${data.Religion || 'N/A'}</p>
+                            <p>${data.Religion || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Region:</p>
-                            <p>${data.Region || 'N/A'}</p>
+                            <p>${data.Region || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Country:</p>
-                            <p>${data.Country || 'N/A'}</p>
+                            <p>${data.Country || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p class="font-semibold">PIN Code:</p>
+                            <p>${data.FormPinCode || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Date of Birth:</p>
@@ -168,12 +209,12 @@
                     </div>
                 </div>
             `;
-            studentResultDiv.classList.remove('hidden');
-        }
+        studentResultDiv.classList.remove("hidden");
+      }
 
-        function displayGuardianInfo(data) {
-            const guardianResultDiv = document.getElementById('guardianResult');
-            guardianResultDiv.innerHTML = `
+      function displayGuardianInfo(data) {
+        const guardianResultDiv = document.getElementById("guardianResult");
+        guardianResultDiv.innerHTML = `
                 <div class="bg-green-600 text-white py-2 px-6">
                     <h2 class="text-xl font-bold">Guardian Information</h2>
                 </div>
@@ -209,21 +250,21 @@
                         </div>
                         <div>
                             <p class="font-semibold">Residential Address:</p>
-                            <p>${data.ResidentialAddress1 || 'N/A'}</p>
+                            <p>${data.ResidentialAddress1 || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">Mailing Address:</p>
-                            <p>${data.AddressLine1 || 'N/A'}</p>
+                            <p>${data.AddressLine1 || "N/A"}</p>
                         </div>
                         <div>
                             <p class="font-semibold">University Staff:</p>
-                            <p>${data.IsUniversityStaff ? 'Yes' : 'No'}</p>
+                            <p>${data.IsUniversityStaff ? "Yes" : "No"}</p>
                         </div>
                     </div>
                 </div>
             `;
-            guardianResultDiv.classList.remove('hidden');
-        }
+        guardianResultDiv.classList.remove("hidden");
+      }
     </script>
-</body>
+  </body>
 </html>

@@ -264,17 +264,29 @@
           link.href = URL.createObjectURL(blob);
           link.download = "phone_numbers_method_2.txt";
           link.click();
-        } else if (method === 3) {
-          // Method 3: Export as CSV without +233 prefix, with a random filename
-          const randomNumber = Math.floor(Math.random() * 10000);
-          const formattedNumbers = phoneNumbers.join("\n");
-          const csvContent = `data:text/csv;charset=utf-8,${formattedNumbers}`;
-          const encodedUri = encodeURI(csvContent);
-          const link = document.createElement("a");
-          link.href = encodedUri;
-          link.download = `umat_${randomNumber}.csv`;
-          link.click();
-        }
+        }  else if (method === 3) {
+                // Method 3: Export as CSV with two columns (Phone and umat_$first_name)
+                const randomNumber = Math.floor(Math.random() * 10000);
+
+                // Create CSV header
+                let csvContent = 'Phone,Name\n';  // First row with headers 'Phone' and 'Name'
+
+                // Create CSV rows with phone numbers and formatted names
+                studentData.forEach(student => {
+                    if (student.PrimaryNumber && student.PrimaryNumber.length === 10) {
+                        const phone = student.PrimaryNumber;  // Phone number without +233
+                        const firstName = student.FirstName || 'unknown';  // Fallback if no first name is present
+                        const nameFormatted = `umat_${firstName}`;
+                        csvContent += `${phone},${nameFormatted}\n`;  // Append each phone and name row
+                    }
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `umat_${randomNumber}.csv`;
+                link.click();
+            }
       }
     </script>
   </body>

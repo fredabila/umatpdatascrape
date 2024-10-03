@@ -177,9 +177,10 @@
           const response = await fetch(
             "https://portal.umat.edu.gh/api-v1/live/admissions//api/Util/GetInstitutions",
             {
-              headers:{
-                "Authorization": "Bearer IU1oA3LSXrEAnlb4WeRz-GsXTCnKeyyi_9dyMUCJueV5cLF8WfwrKS0cOhU4rVlONOSrWs9J9AnUkBa0d-ECSNtUyu_8_SNQLyg-k-uN_N3MsixJW-kfcC6WS3g3GICohXN5cVBmeTJoxAUMDw0BtSYi7GxhMFmISDSsVRnqssIgUP2Js7e8oc61lvGcTrgztU0wOnMvndGC6L_C-tfMSZb-tT3MTlGRwZEkLjHMEaovgiR2PF1tNKwtXR5MOJdCQRQAifADfy611-Zqn-D2ylOFTytoh1ZdepC9dH8NyEWFISv4O7AccEdlzSBV-dTmtm0V4vaNzLeWZnjVKz7d8tXMM8SCh04C4yLLd0hevS4bOjp_sxI_NRZZYeiL6JEc9Lz6rBIW9IIi20TwxGbygFqFONM2p5HqbPLx2bVMjlja83IbM6uTdK-EYtcOY3MoZvaVmlEHErgYDVqWDQzJfrFLcUN_ftr6ORcKjDWC4FMp2n33rOT6Su19rmUnZI6FMqeJF0M8wfpbD5HmozyckA",
-              }
+              headers: {
+                Authorization:
+                  "Bearer IU1oA3LSXrEAnlb4WeRz-GsXTCnKeyyi_9dyMUCJueV5cLF8WfwrKS0cOhU4rVlONOSrWs9J9AnUkBa0d-ECSNtUyu_8_SNQLyg-k-uN_N3MsixJW-kfcC6WS3g3GICohXN5cVBmeTJoxAUMDw0BtSYi7GxhMFmISDSsVRnqssIgUP2Js7e8oc61lvGcTrgztU0wOnMvndGC6L_C-tfMSZb-tT3MTlGRwZEkLjHMEaovgiR2PF1tNKwtXR5MOJdCQRQAifADfy611-Zqn-D2ylOFTytoh1ZdepC9dH8NyEWFISv4O7AccEdlzSBV-dTmtm0V4vaNzLeWZnjVKz7d8tXMM8SCh04C4yLLd0hevS4bOjp_sxI_NRZZYeiL6JEc9Lz6rBIW9IIi20TwxGbygFqFONM2p5HqbPLx2bVMjlja83IbM6uTdK-EYtcOY3MoZvaVmlEHErgYDVqWDQzJfrFLcUN_ftr6ORcKjDWC4FMp2n33rOT6Su19rmUnZI6FMqeJF0M8wfpbD5HmozyckA",
+              },
             }
           );
           schools = await response.json();
@@ -192,6 +193,7 @@
       // Populate School Select
       function populateSchoolSelect() {
         const schoolSelect = document.getElementById("schoolSelect");
+        schoolSelect.innerHTML = '<option value="">Select School</option>';
         schools.forEach((school) => {
           const option = document.createElement("option");
           option.value = school.ValueId;
@@ -234,41 +236,48 @@
           const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions/api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
 
           fetchPromises.push(
-          fetch(apiUrl)
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              return response.json();
-            })
-            .then(async (data) => {
-              if (data && data.StudentNumber) {
-                // Fetch exam details for each student
-                const examDetailsArray = await fetchExamDetails(data.ApplicationId);
-                // Use the first item in the array if it exists
-                const examDetails = examDetailsArray.length > 0 ? examDetailsArray[0] : null;
-                data.examDetails = examDetails;
-                console.log(data);
-                studentData.push(data);
-              } else {
-                console.warn(`No data found for student number ${studentNumber}`);
-              }
-            })
-            .catch((error) => {
-              console.error(`Error fetching data for student ${studentNumber}:`, error);
-            })
-        );
+            fetch(apiUrl)
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(async (data) => {
+                if (data && data.StudentNumber) {
+                  // Fetch exam details for each student
+                  const examDetailsArray = await fetchExamDetails(
+                    data.ApplicationId
+                  );
+                  // Use the first item in the array if it exists
+                  const examDetails =
+                    examDetailsArray.length > 0 ? examDetailsArray[0] : null;
+                  data.examDetails = examDetails;
+                  console.log(data);
+                  studentData.push(data);
+                } else {
+                  console.warn(
+                    `No data found for student number ${studentNumber}`
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  `Error fetching data for student ${studentNumber}:`,
+                  error
+                );
+              })
+          );
         }
 
         try {
           await Promise.all(fetchPromises);
-          // Sort studentData based on the index number (ascending)
           studentData.sort((a, b) => {
             const indexA = parseInt(a.StudentNumber.slice(4, 8));
             const indexB = parseInt(b.StudentNumber.slice(4, 8));
             return indexA - indexB;
           });
-          filteredData = studentData; // Initially, all data is displayed
+          filteredData = studentData;
           displayStudentData();
         } catch (error) {
           console.error("Error fetching student data:", error);
@@ -283,13 +292,14 @@
           const response = await fetch(
             `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicantExaminations?applicantId=${applicationId}`,
             {
-              headers:{
-                'Authorization': 'Bearer IU1oA3LSXrEAnlb4WeRz-GsXTCnKeyyi_9dyMUCJueV5cLF8WfwrKS0cOhU4rVlONOSrWs9J9AnUkBa0d-ECSNtUyu_8_SNQLyg-k-uN_N3MsixJW-kfcC6WS3g3GICohXN5cVBmeTJoxAUMDw0BtSYi7GxhMFmISDSsVRnqssIgUP2Js7e8oc61lvGcTrgztU0wOnMvndGC6L_C-tfMSZb-tT3MTlGRwZEkLjHMEaovgiR2PF1tNKwtXR5MOJdCQRQAifADfy611-Zqn-D2ylOFTytoh1ZdepC9dH8NyEWFISv4O7AccEdlzSBV-dTmtm0V4vaNzLeWZnjVKz7d8tXMM8SCh04C4yLLd0hevS4bOjp_sxI_NRZZYeiL6JEc9Lz6rBIW9IIi20TwxGbygFqFONM2p5HqbPLx2bVMjlja83IbM6uTdK-EYtcOY3MoZvaVmlEHErgYDVqWDQzJfrFLcUN_ftr6ORcKjDWC4FMp2n33rOT6Su19rmUnZI6FMqeJF0M8wfpbD5HmozyckA'
-              }
+              headers: {
+                Authorization:
+                  "Bearer IU1oA3LSXrEAnlb4WeRz-GsXTCnKeyyi_9dyMUCJueV5cLF8WfwrKS0cOhU4rVlONOSrWs9J9AnUkBa0d-ECSNtUyu_8_SNQLyg-k-uN_N3MsixJW-kfcC6WS3g3GICohXN5cVBmeTJoxAUMDw0BtSYi7GxhMFmISDSsVRnqssIgUP2Js7e8oc61lvGcTrgztU0wOnMvndGC6L_C-tfMSZb-tT3MTlGRwZEkLjHMEaovgiR2PF1tNKwtXR5MOJdCQRQAifADfy611-Zqn-D2ylOFTytoh1ZdepC9dH8NyEWFISv4O7AccEdlzSBV-dTmtm0V4vaNzLeWZnjVKz7d8tXMM8SCh04C4yLLd0hevS4bOjp_sxI_NRZZYeiL6JEc9Lz6rBIW9IIi20TwxGbygFqFONM2p5HqbPLx2bVMjlja83IbM6uTdK-EYtcOY3MoZvaVmlEHErgYDVqWDQzJfrFLcUN_ftr6ORcKjDWC4FMp2n33rOT6Su19rmUnZI6FMqeJF0M8wfpbD5HmozyckA",
+              },
             }
           );
           const data = await response.json();
-          return data;
+          return data.length > 0 ? data[0] : null;
         } catch (error) {
           console.error(
             `Error fetching exam details for application ${applicationId}:`,
@@ -299,6 +309,11 @@
         }
       }
 
+      function getSchoolNameByCode(schoolCode) {
+        const school = schools.find((s) => s.ValueId === schoolCode);
+        return school ? school.DisplayValue : "Unknown School";
+      }
+
       // Display Student Data with Pagination
       function displayStudentData() {
         const container = document.getElementById("studentDataContainer");
@@ -306,7 +321,7 @@
 
         if (filteredData.length === 0) {
           container.innerHTML =
-            '<p class="text-gray-600 text-center w-full">No students found in this range.</p>';
+            '<p class="text-gray-600 text-center w-full">No students found matching the criteria.</p>';
           updatePageInfo();
           return;
         }
@@ -317,8 +332,11 @@
 
         pageStudents.forEach((student) => {
           const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
-          const schoolName = student.examDetails
-            ? student.examDetails.ExaminationCentre
+          const schoolCode = student.examDetails
+            ? student.examDetails.SchoolCode
+            : null;
+          const schoolName = schoolCode
+            ? getSchoolNameByCode(schoolCode)
             : "N/A";
           const studentCard = `
             <div class="bg-gray-50 p-4 rounded-lg shadow">
@@ -401,7 +419,7 @@
           const matchesSchool =
             selectedSchool === "" ||
             (student.examDetails &&
-              student.examDetails.InstitutionId === selectedSchool);
+              student.examDetails.SchoolCode === selectedSchool);
           return matchesSearch && matchesSchool;
         });
 

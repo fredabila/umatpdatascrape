@@ -249,7 +249,12 @@
                   const examDetailsArray = await fetchExamDetails(
                     data.ApplicationId
                   );
-                  studentData.push(examDetailsArray);
+                  // Use the first item in the array if it exists
+                  const examDetails =
+                    examDetailsArray.length > 0 ? examDetailsArray[0] : null;
+                  data.examDetails = examDetails;
+                  console.log(data);
+                  studentData.push(data);
                 } else {
                   console.warn(
                     `No data found for student number ${studentNumber}`
@@ -294,7 +299,7 @@
             }
           );
           const data = await response.json();
-          console.log(data[0]);
+          console.log(data[0])
           return data.length > 0 ? data[0] : null;
         } catch (error) {
           console.error(
@@ -329,7 +334,7 @@
         pageStudents.forEach((student) => {
           const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
           const schoolCode = student.examDetails
-            ? student.SchoolCode
+            ? student.examDetails.InstitutionId
             : null;
           const schoolName = schoolCode
             ? getSchoolNameByCode(schoolCode)
@@ -415,7 +420,7 @@
           const matchesSchool =
             selectedSchool === "" ||
             (student.examDetails &&
-              student.examDetails.SchoolCode === selectedSchool);
+              student.examDetails.InstitutionId === selectedSchool);
           return matchesSearch && matchesSchool;
         });
 

@@ -249,12 +249,7 @@
                   const examDetailsArray = await fetchExamDetails(
                     data.ApplicationId
                   );
-                  // Use the first item in the array if it exists
-                  const examDetails =
-                    examDetailsArray.length > 0 ? examDetailsArray[0] : null;
-                  data.examDetails = examDetails;
-                  console.log(data);
-                  studentData.push(data);
+                  studentData.push(examDetailsArray);
                 } else {
                   console.warn(
                     `No data found for student number ${studentNumber}`
@@ -334,7 +329,7 @@
         pageStudents.forEach((student) => {
           const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
           const schoolCode = student.examDetails
-            ? student.examDetails.SchoolCode
+            ? student.SchoolCode
             : null;
           const schoolName = schoolCode
             ? getSchoolNameByCode(schoolCode)

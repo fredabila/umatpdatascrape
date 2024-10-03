@@ -263,15 +263,16 @@
                 const randomNumber = Math.floor(Math.random() * 10000);
 
                 // Create CSV header
-                let csvContent = 'Phone,Name\n';  // First row with headers 'Phone' and 'Name'
+                let csvContent = 'Phone,Name,Reference\n';  // First row with headers 'Phone' and 'Name'
 
                 // Create CSV rows with phone numbers and formatted names
                 studentData.forEach(student => {
                     if (student.PrimaryNumber && student.PrimaryNumber.length === 10) {
                         const phone = student.PrimaryNumber;  // Phone number without +233
-                        const firstName = student.FirstName || 'unknown';  // Fallback if no first name is present
+                        const firstName = student.FirstName || 'unknown'; 
+                        const Reference = student.StudentNumber || 'unknown';
                         const nameFormatted = `umat_${firstName}`;
-                        csvContent += `${phone},${nameFormatted}\n`;  // Append each phone and name row
+                        csvContent += `${phone},${nameFormatted},${Reference}\n`;  // Append each phone and name row
                     }
                 });
 

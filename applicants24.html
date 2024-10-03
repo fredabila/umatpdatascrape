@@ -425,7 +425,7 @@
           const matchesSchool =
             selectedSchool === "" ||
             (student.examDetails &&
-              student.examDetails.InstitutionId === selectedSchool);
+              `${student.examDetails.InstitutionId}` === selectedSchool);
           
           console.log("Student:", student.StudentNumber);
           console.log("Matches Search:", matchesSearch);

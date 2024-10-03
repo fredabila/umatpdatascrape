@@ -312,7 +312,8 @@
 
       function getSchoolNameByCode(schoolCode) {
         console.log('School Code:',schoolCode);
-        const school = schools.find((s) => s.ValueId === schoolCode);
+        const school = schools.find((s) => s.ValueId === `${schoolCode}`);
+        console.log('School:',school);
         return school ? school.DisplayValue : "Unknown School";
       }
 

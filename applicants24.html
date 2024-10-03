@@ -3,227 +3,475 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Search and Filter</title>
+    <title>Student Data Query</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      .container {
-        width: 80%;
-        margin: 0 auto;
+      .loader {
+        border-top-color: #3498db;
+        -webkit-animation: spinner 1.5s linear infinite;
+        animation: spinner 1.5s linear infinite;
       }
-      .search-container {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
+      @-webkit-keyframes spinner {
+        0% {
+          -webkit-transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+        }
       }
-      .search-container input,
-      .search-container select,
-      .search-container button {
-        padding: 10px;
-        font-size: 16px;
-      }
-      .student-list {
-        margin-top: 20px;
-      }
-      .student {
-        padding: 10px;
-        border-bottom: 1px solid #ccc;
-      }
-      .pagination {
-        margin-top: 20px;
-        display: flex;
-        justify-content: center;
-      }
-      .pagination button {
-        padding: 10px;
-        margin: 0 5px;
+      @keyframes spinner {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
-  <body>
-    <div class="container">
-      <h1>Student Search and Filter</h1>
+  <body
+    class="bg-gray-100 min-h-screen flex flex-col items-center justify-start px-4 py-8"
+  >
+    <div class="container max-w-6xl mx-auto">
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <!-- Header Section -->
+        <div
+          class="bg-blue-600 text-white py-4 px-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
+        >
+          <h2 class="text-2xl font-bold">Student Data Query</h2>
+          <div
+            class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4"
+          >
+            <input
+              type="number"
+              id="startNumber"
+              placeholder="Start Number"
+              min="1"
+              max="9999"
+              class="px-2 py-1 rounded-md text-black w-full md:w-auto"
+              value="1"
+            />
+            <input
+              type="number"
+              id="endNumber"
+              placeholder="End Number"
+              min="1"
+              max="9999"
+              class="px-2 py-1 rounded-md text-black w-full md:w-auto"
+              value="10"
+            />
+            <button
+              onclick="fetchStudentData()"
+              class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition duration-300"
+            >
+              Fetch Data
+            </button>
+          </div>
+        </div>
 
-      <div class="search-container">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search by Index Number"
-          onkeyup="filterStudents()"
-        />
-        <select id="schoolSelect" onchange="filterBySchool()">
-          <option value="">Select School</option>
-        </select>
-        <button onclick="resetFilters()">Reset</button>
-      </div>
+        <!-- Search and Filter Bar -->
+        <div
+          class="bg-blue-500 text-white py-3 px-6 flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-4"
+        >
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by Index Number (e.g., 0001)"
+            class="px-3 py-2 rounded-md text-black w-full md:w-1/3"
+          />
+          <select
+            id="schoolSelect"
+            class="px-3 py-2 rounded-md text-black w-full md:w-1/3"
+          >
+            <option value="">Select School</option>
+          </select>
+          <button
+            onclick="applyFilters()"
+            class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition duration-300"
+          >
+            Apply Filters
+          </button>
+          <button
+            onclick="resetFilters()"
+            class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300"
+          >
+            Reset Filters
+          </button>
+        </div>
 
-      <div class="student-list" id="studentList">
-        <!-- Student data will be displayed here -->
-      </div>
+        <!-- Student Data Container -->
+        <div
+          id="studentDataContainer"
+          class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <!-- Student data will be dynamically inserted here -->
+        </div>
 
-      <div class="pagination" id="pagination">
-        <!-- Pagination buttons will be here -->
+        <!-- Pagination Controls -->
+        <div class="p-6 flex justify-between items-center">
+          <button
+            id="prevButton"
+            onclick="changePage(-1)"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span id="pageInfo" class="text-gray-600"></span>
+          <button
+            id="nextButton"
+            onclick="changePage(1)"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="p-6 flex justify-center space-x-4">
+          <button
+            onclick="exportPhoneNumbers(1)"
+            class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
+          >
+            Export Method 1
+          </button>
+          <button
+            onclick="exportPhoneNumbers(2)"
+            class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
+          >
+            Export Method 2
+          </button>
+          <button
+            onclick="exportPhoneNumbers(3)"
+            class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
+          >
+            Export Method 3 (CSV)
+          </button>
+        </div>
       </div>
     </div>
 
+    <!-- Loader -->
+    <div
+      id="loader"
+      class="hidden fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center"
+    >
+      <div
+        class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"
+      ></div>
+      <h2 class="text-center text-white text-xl font-semibold">Loading...</h2>
+      <p class="w-1/3 text-center text-white">
+        This may take a few seconds, please don't close this page.
+      </p>
+    </div>
+
     <script>
-      let allStudents = [];
-      let filteredStudents = [];
-      let institutions = [];
+      let studentData = [];
+      let filteredData = [];
       let currentPage = 1;
       const studentsPerPage = 20;
+      let schools = [];
 
-      // Fetching initial data
-      window.onload = function () {
-        fetchInstitutions();
-        fetchStudents();
-      };
-
-      // Fetch institutions for the dropdown
-      function fetchInstitutions() {
-        fetch(
-          "https://portal.umat.edu.gh/api-v1/live/admissions//api/Util/GetInstitutions"
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            institutions = data;
-            populateInstitutionDropdown();
-          })
-          .catch((error) =>
-            console.error("Error fetching institutions:", error)
+      // Fetch Schools
+      async function fetchSchools() {
+        try {
+          const response = await fetch(
+            "https://portal.umat.edu.gh/api-v1/live/admissions//api/Util/GetInstitutions"
           );
+          schools = await response.json();
+          populateSchoolSelect();
+        } catch (error) {
+          console.error("Error fetching schools:", error);
+        }
       }
 
-      // Populate the school select dropdown
-      function populateInstitutionDropdown() {
+      // Populate School Select
+      function populateSchoolSelect() {
         const schoolSelect = document.getElementById("schoolSelect");
-        institutions.forEach((institution) => {
+        schools.forEach((school) => {
           const option = document.createElement("option");
-          option.value = institution.ValueId;
-          option.textContent = institution.DisplayValue;
+          option.value = school.ValueId;
+          option.textContent = school.DisplayValue;
           schoolSelect.appendChild(option);
         });
       }
 
-      // Fetch all students (you should replace this with your actual API that fetches students)
-      function fetchStudents() {
-        // Simulating a fetch of 100 dummy students
-        for (let i = 1; i <= 100; i++) {
-          allStudents.push({
-            indexNumber: String(i).padStart(4, "0"),
-            name: `Student ${i}`,
-            applicationId: 4000000 + i,
-          });
-        }
-        filteredStudents = [...allStudents];
-        renderStudents();
-      }
-
-      // Search and filter by index number
-      function filterStudents() {
-        const searchQuery = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        filteredStudents = allStudents.filter((student) =>
-          student.indexNumber.includes(searchQuery)
+      // Fetch Student Data based on Start and End Numbers
+      async function fetchStudentData() {
+        const startNumber = parseInt(
+          document.getElementById("startNumber").value
         );
-        currentPage = 1;
-        renderStudents();
-      }
+        const endNumber = parseInt(document.getElementById("endNumber").value);
 
-      // Filter by school
-      function filterBySchool() {
-        const selectedSchoolId = document.getElementById("schoolSelect").value;
-        if (selectedSchoolId) {
-          filteredStudents = allStudents.filter((student) => {
-            return fetch(
-              `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicantExaminations?applicantId=${student.applicationId}`
-            )
-              .then((response) => response.json())
-              .then((data) => {
-                return data.SchoolCode === selectedSchoolId;
-              })
-              .catch((error) =>
-                console.error("Error fetching applicant examinations:", error)
-              );
-          });
-        } else {
-          filteredStudents = [...allStudents];
+        if (isNaN(startNumber) || isNaN(endNumber)) {
+          alert("Please enter valid numeric start and end numbers.");
+          return;
         }
+
+        if (startNumber > endNumber || startNumber < 1 || endNumber > 9999) {
+          alert(
+            "Please enter valid start and end numbers (1-9999) with Start Number ≤ End Number."
+          );
+          return;
+        }
+
+        const loader = document.getElementById("loader");
+        loader.classList.remove("hidden");
+
+        studentData = [];
+        filteredData = [];
         currentPage = 1;
-        renderStudents();
+
+        const fetchPromises = [];
+
+        for (let i = startNumber; i <= endNumber; i++) {
+          const paddedNumber = i.toString().padStart(4, "0");
+          const studentNumber = `9014${paddedNumber}24`;
+          const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions/api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
+
+          fetchPromises.push(
+            fetch(apiUrl)
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+              })
+              .then(async (data) => {
+                if (data && data.StudentNumber) {
+                  // Fetch exam details for each student
+                  const examDetails = await fetchExamDetails(
+                    data.ApplicationId
+                  );
+                  data.examDetails = examDetails;
+                  studentData.push(data);
+                } else {
+                  console.warn(
+                    `No data found for student number ${studentNumber}`
+                  );
+                }
+              })
+              .catch((error) => {
+                console.error(
+                  `Error fetching data for student ${studentNumber}:`,
+                  error
+                );
+              })
+          );
+        }
+
+        try {
+          await Promise.all(fetchPromises);
+          // Sort studentData based on the index number (ascending)
+          studentData.sort((a, b) => {
+            const indexA = parseInt(a.StudentNumber.slice(4, 8));
+            const indexB = parseInt(b.StudentNumber.slice(4, 8));
+            return indexA - indexB;
+          });
+          filteredData = studentData; // Initially, all data is displayed
+          displayStudentData();
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+        } finally {
+          loader.classList.add("hidden");
+        }
       }
 
-      // Reset filters
+      // Fetch Exam Details for a Student
+      async function fetchExamDetails(applicationId) {
+        try {
+          const response = await fetch(
+            `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicantExaminations?applicantId=${applicationId}`
+          );
+          const data = await response.json();
+          return data;
+        } catch (error) {
+          console.error(
+            `Error fetching exam details for application ${applicationId}:`,
+            error
+          );
+          return null;
+        }
+      }
+
+      // Display Student Data with Pagination
+      function displayStudentData() {
+        const container = document.getElementById("studentDataContainer");
+        container.innerHTML = "";
+
+        if (filteredData.length === 0) {
+          container.innerHTML =
+            '<p class="text-gray-600 text-center w-full">No students found in this range.</p>';
+          updatePageInfo();
+          return;
+        }
+
+        const startIndex = (currentPage - 1) * studentsPerPage;
+        const endIndex = startIndex + studentsPerPage;
+        const pageStudents = filteredData.slice(startIndex, endIndex);
+
+        pageStudents.forEach((student) => {
+          const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
+          const schoolName = student.examDetails
+            ? student.examDetails.ExaminationCentre
+            : "N/A";
+          const studentCard = `
+            <div class="bg-gray-50 p-4 rounded-lg shadow">
+              <h3 class="text-lg font-semibold mb-2">${
+                student.ApplicatantFullName
+              }</h3>
+              <p><strong>Student Number:</strong> ${student.StudentNumber}</p>
+              <p><strong>Programme:</strong> ${student.ProgrammeFullName}</p>
+              <p><strong>Campus:</strong> ${student.Campus}</p>
+              <p><strong>Email:</strong> ${student.Email || "N/A"}</p>
+              <p><strong>Phone:</strong> ${formattedPhone || "N/A"}</p>
+              <p><strong>Gender:</strong> ${student.GenderName || "N/A"}</p>
+              <p><strong>Date of Birth:</strong> ${
+                student.DateOfBirth
+                  ? new Date(student.DateOfBirth).toLocaleDateString()
+                  : "N/A"
+              }</p>
+              <p><strong>Address:</strong> ${student.AddressLine1 || "N/A"}</p>
+              <p><strong>School:</strong> ${schoolName}</p>
+              ${
+                formattedPhone
+                  ? `<a href="${getWhatsAppLink(
+                      formattedPhone
+                    )}" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">WhatsApp</a>`
+                  : ""
+              }
+            </div>
+          `;
+          container.innerHTML += studentCard;
+        });
+
+        updatePageInfo();
+      }
+
+      // Get WhatsApp Link
+      function getWhatsAppLink(phoneNumber) {
+        const cleanedNumber = phoneNumber.replace(/\D/g, "");
+        return `https://wa.me/${cleanedNumber}`;
+      }
+
+      // Format Phone Number
+      function formatPhoneNumber(phoneNumber) {
+        if (phoneNumber && phoneNumber.length === 10) {
+          return `+233${phoneNumber.slice(1)}`;
+        }
+        return phoneNumber;
+      }
+
+      // Update Pagination Info and Button States
+      function updatePageInfo() {
+        const pageInfo = document.getElementById("pageInfo");
+        const totalPages =
+          Math.ceil(filteredData.length / studentsPerPage) || 1;
+        pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+
+        document.getElementById("prevButton").disabled = currentPage === 1;
+        document.getElementById("nextButton").disabled =
+          currentPage === totalPages;
+      }
+
+      // Change Page
+      function changePage(direction) {
+        const totalPages = Math.ceil(filteredData.length / studentsPerPage);
+        currentPage += direction;
+        if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        displayStudentData();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // Apply Filters
+      function applyFilters() {
+        const searchInput = document.getElementById("searchInput").value.trim();
+        const selectedSchool = document.getElementById("schoolSelect").value;
+
+        filteredData = studentData.filter((student) => {
+          const matchesSearch =
+            searchInput === "" ||
+            student.StudentNumber.slice(4, 8) === searchInput.padStart(4, "0");
+          const matchesSchool =
+            selectedSchool === "" ||
+            (student.examDetails &&
+              student.examDetails.InstitutionId === selectedSchool);
+          return matchesSearch && matchesSchool;
+        });
+
+        currentPage = 1;
+        displayStudentData();
+      }
+
+      // Reset Filters
       function resetFilters() {
         document.getElementById("searchInput").value = "";
         document.getElementById("schoolSelect").value = "";
-        filteredStudents = [...allStudents];
+        filteredData = studentData;
         currentPage = 1;
-        renderStudents();
+        displayStudentData();
       }
 
-      // Pagination logic
-      function renderStudents() {
-        const studentList = document.getElementById("studentList");
-        studentList.innerHTML = "";
+      // Export Phone Numbers
+      function exportPhoneNumbers(method) {
+        let phoneNumbers = studentData.map((student) => student.PrimaryNumber);
+        phoneNumbers = phoneNumbers.filter(
+          (phone) => phone && phone.length === 10
+        );
 
-        // Calculate which students to show on the current page
-        const start = (currentPage - 1) * studentsPerPage;
-        const end = start + studentsPerPage;
-        const studentsToShow = filteredStudents.slice(start, end);
-
-        studentsToShow.forEach((student) => {
-          const div = document.createElement("div");
-          div.className = "student";
-          div.textContent = `${student.indexNumber}: ${student.name}`;
-          studentList.appendChild(div);
-        });
-
-        renderPagination();
-      }
-
-      // Render pagination buttons
-      function renderPagination() {
-        const pagination = document.getElementById("pagination");
-        pagination.innerHTML = "";
-
-        const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-
-        // Previous button
-        const prevButton = document.createElement("button");
-        prevButton.textContent = "Previous";
-        prevButton.disabled = currentPage === 1;
-        prevButton.onclick = () => {
-          if (currentPage > 1) {
-            currentPage--;
-            renderStudents();
-          }
-        };
-        pagination.appendChild(prevButton);
-
-        // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-          const pageButton = document.createElement("button");
-          pageButton.textContent = i;
-          pageButton.disabled = i === currentPage;
-          pageButton.onclick = () => {
-            currentPage = i;
-            renderStudents();
-          };
-          pagination.appendChild(pageButton);
+        if (phoneNumbers.length === 0) {
+          alert("No valid phone numbers available for export.");
+          return;
         }
 
-        // Next button
-        const nextButton = document.createElement("button");
-        nextButton.textContent = "Next";
-        nextButton.disabled = currentPage === totalPages;
-        nextButton.onclick = () => {
-          if (currentPage < totalPages) {
-            currentPage++;
-            renderStudents();
-          }
-        };
-        pagination.appendChild(nextButton);
+        if (method === 1) {
+          const formattedNumbers = phoneNumbers
+            .map((phone) => `+233${phone.slice(1)}`)
+            .join(",");
+          const blob = new Blob([formattedNumbers], { type: "text/plain" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "phone_numbers_method_1.txt";
+          link.click();
+        } else if (method === 2) {
+          const formattedNumbers = phoneNumbers
+            .map((phone) => `+233${phone.slice(1)}`)
+            .join("\n");
+          const blob = new Blob([formattedNumbers], { type: "text/plain" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "phone_numbers_method_2.txt";
+          link.click();
+        } else if (method === 3) {
+          const randomNumber = Math.floor(Math.random() * 10000);
+          let csvContent = "Phone,Name,Reference\n";
+
+          studentData.forEach((student) => {
+            if (student.PrimaryNumber && student.PrimaryNumber.length === 10) {
+              const phone = `+233${student.PrimaryNumber.slice(1)}`;
+              const firstName = student.FirstName || "unknown";
+              const reference = student.StudentNumber || "unknown";
+              const nameFormatted = `umat_${firstName}`;
+              csvContent += `"${phone}","${nameFormatted}","${reference}"\n`;
+            }
+          });
+
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `umat_${randomNumber}.csv`;
+          link.click();
+        }
       }
+
+      // Initialize: Fetch schools when the page loads
+      window.onload = async function () {
+        await fetchSchools();
+        // Optionally, you can fetch student data with default values here
+        // fetchStudentData();
+      };
     </script>
   </body>
 </html>

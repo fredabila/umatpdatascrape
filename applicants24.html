@@ -32,20 +32,23 @@
   <body
     class="bg-gray-100 min-h-screen flex flex-col items-center justify-start px-4 py-8"
   >
-    <div class="container max-w-4xl mx-auto">
+    <div class="container max-w-6xl mx-auto">
       <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <!-- Header Section -->
         <div
-          class="bg-blue-600 text-white py-4 px-6 flex justify-between items-center"
+          class="bg-blue-600 text-white py-4 px-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
         >
           <h2 class="text-2xl font-bold">Student Data Query</h2>
-          <div>
+          <div
+            class="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4"
+          >
             <input
               type="number"
               id="startNumber"
               placeholder="Start Number"
               min="1"
               max="9999"
-              class="px-2 py-1 rounded-md text-black"
+              class="px-2 py-1 rounded-md text-black w-full md:w-auto"
               value="1"
             />
             <input
@@ -54,28 +57,50 @@
               placeholder="End Number"
               min="1"
               max="9999"
-              class="px-2 py-1 rounded-md text-black"
+              class="px-2 py-1 rounded-md text-black w-full md:w-auto"
               value="10"
             />
             <button
               onclick="fetchStudentData()"
-              class="bg-white text-blue-600 px-4 py-1 rounded-md hover:bg-blue-100 transition duration-300"
+              class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition duration-300"
             >
               Fetch Data
             </button>
           </div>
         </div>
+
+        <!-- Search Bar -->
+        <div
+          class="bg-blue-500 text-white py-3 px-6 flex justify-center items-center space-x-4"
+        >
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search by Index Number (e.g., 0001)"
+            class="px-3 py-2 rounded-md text-black w-full md:w-1/3"
+          />
+          <button
+            onclick="searchStudent()"
+            class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100 transition duration-300"
+          >
+            Search
+          </button>
+        </div>
+
+        <!-- Student Data Container -->
         <div
           id="studentDataContainer"
-          class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
+          class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <!-- Student data will be dynamically inserted here -->
         </div>
+
+        <!-- Pagination Controls -->
         <div class="p-6 flex justify-between items-center">
           <button
             id="prevButton"
             onclick="changePage(-1)"
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
@@ -83,11 +108,13 @@
           <button
             id="nextButton"
             onclick="changePage(1)"
-            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>
         </div>
+
+        <!-- Export Buttons -->
         <div class="p-6 flex justify-center space-x-4">
           <button
             onclick="exportPhoneNumbers(1)"
@@ -111,6 +138,7 @@
       </div>
     </div>
 
+    <!-- Loader -->
     <div
       id="loader"
       class="hidden fixed top-0 left-0 right-0 bottom-0 w-full h-screen z-50 overflow-hidden bg-gray-700 opacity-75 flex flex-col items-center justify-center"
@@ -126,17 +154,26 @@
 
     <script>
       let studentData = [];
+      let filteredData = [];
       let currentPage = 1;
-      const studentsPerPage = 4;
+      const studentsPerPage = 20;
 
-      function fetchStudentData() {
+      // Fetch Student Data based on Start and End Numbers
+      async function fetchStudentData() {
         const startNumber = parseInt(
           document.getElementById("startNumber").value
         );
         const endNumber = parseInt(document.getElementById("endNumber").value);
 
+        if (isNaN(startNumber) || isNaN(endNumber)) {
+          alert("Please enter valid numeric start and end numbers.");
+          return;
+        }
+
         if (startNumber > endNumber || startNumber < 1 || endNumber > 9999) {
-          alert("Please enter valid start and end numbers (1-9999)");
+          alert(
+            "Please enter valid start and end numbers (1-9999) with Start Number ≤ End Number."
+          );
           return;
         }
 
@@ -144,69 +181,117 @@
         loader.classList.remove("hidden");
 
         studentData = [];
+        filteredData = [];
+        currentPage = 1;
+
         const fetchPromises = [];
 
         for (let i = startNumber; i <= endNumber; i++) {
           const paddedNumber = i.toString().padStart(4, "0");
           const studentNumber = `9014${paddedNumber}24`;
-          const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions//api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
+          const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions/api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
 
           fetchPromises.push(
             fetch(apiUrl)
-              .then((response) => response.json())
-              .then((data) => {
-                if (data) studentData.push(data);
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
               })
-              .catch((error) =>
+              .then((data) => {
+                if (data && data.StudentNumber) {
+                  studentData.push(data);
+                } else {
+                  console.warn(
+                    `No data found for student number ${studentNumber}`
+                  );
+                }
+              })
+              .catch((error) => {
                 console.error(
                   `Error fetching data for student ${studentNumber}:`,
                   error
-                )
-              )
+                );
+              })
           );
         }
 
-        Promise.all(fetchPromises).then(() => {
-          currentPage = 1;
+        try {
+          await Promise.all(fetchPromises);
+          // Sort studentData based on the index number (ascending)
+          studentData.sort((a, b) => {
+            const indexA = parseInt(a.StudentNumber.slice(4, 8));
+            const indexB = parseInt(b.StudentNumber.slice(4, 8));
+            return indexA - indexB;
+          });
+          filteredData = studentData; // Initially, all data is displayed
           displayStudentData();
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+        } finally {
           loader.classList.add("hidden");
-        });
+        }
       }
 
+      // Display Student Data with Pagination
       function displayStudentData() {
-            const container = document.getElementById('studentDataContainer');
-            container.innerHTML = '';
+        const container = document.getElementById("studentDataContainer");
+        container.innerHTML = "";
 
-            const startIndex = (currentPage - 1) * studentsPerPage;
-            const endIndex = startIndex + studentsPerPage;
-            const pageStudents = studentData.slice(startIndex, endIndex);
-
-            pageStudents.forEach(student => {
-                const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
-                const studentCard = `
-                    <div class="bg-gray-50 p-4 rounded-lg shadow">
-                        <h3 class="text-lg font-semibold mb-2">${student.ApplicatantFullName}</h3>
-                        <p><strong>Student Number:</strong> ${student.StudentNumber}</p>
-                        <p><strong>Programme:</strong> ${student.ProgrammeFullName}</p>
-                        <p><strong>Campus:</strong> ${student.Campus}</p>
-                        <p><strong>Email:</strong> ${student.Email || 'N/A'}</p>
-                        <p><strong>Phone:</strong> ${formattedPhone || 'N/A'}</p>
-                        <p><strong>Gender:</strong> ${student.GenderName || 'N/A'}</p>
-                        <p><strong>Date of Birth:</strong> ${student.DateOfBirth ? new Date(student.DateOfBirth).toLocaleDateString() : 'N/A'}</p>
-                        <p><strong>Address:</strong> ${student.AddressLine1 || 'N/A'}</p>
-                        ${formattedPhone ? `<a href="${getWhatsAppLink(formattedPhone)}" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">WhatsApp</a>` : ''}
-                    </div>
-                `;
-                container.innerHTML += studentCard;
-            });
-
-            updatePageInfo();
+        if (filteredData.length === 0) {
+          container.innerHTML =
+            '<p class="text-gray-600 text-center w-full">No students found in this range.</p>';
+          updatePageInfo();
+          return;
         }
 
-        function getWhatsAppLink(phoneNumber) {
-            return `https://wa.me/${phoneNumber}`;
-        }
+        const startIndex = (currentPage - 1) * studentsPerPage;
+        const endIndex = startIndex + studentsPerPage;
+        const pageStudents = filteredData.slice(startIndex, endIndex);
 
+        pageStudents.forEach((student) => {
+          const formattedPhone = formatPhoneNumber(student.PrimaryNumber);
+          const studentCard = `
+          <div class="bg-gray-50 p-4 rounded-lg shadow">
+            <h3 class="text-lg font-semibold mb-2">${
+              student.ApplicatantFullName
+            }</h3>
+            <p><strong>Student Number:</strong> ${student.StudentNumber}</p>
+            <p><strong>Programme:</strong> ${student.ProgrammeFullName}</p>
+            <p><strong>Campus:</strong> ${student.Campus}</p>
+            <p><strong>Email:</strong> ${student.Email || "N/A"}</p>
+            <p><strong>Phone:</strong> ${formattedPhone || "N/A"}</p>
+            <p><strong>Gender:</strong> ${student.GenderName || "N/A"}</p>
+            <p><strong>Date of Birth:</strong> ${
+              student.DateOfBirth
+                ? new Date(student.DateOfBirth).toLocaleDateString()
+                : "N/A"
+            }</p>
+            <p><strong>Address:</strong> ${student.AddressLine1 || "N/A"}</p>
+            ${
+              formattedPhone
+                ? `<a href="${getWhatsAppLink(
+                    formattedPhone
+                  )}" target="_blank" class="inline-block mt-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300">WhatsApp</a>`
+                : ""
+            }
+          </div>
+        `;
+          container.innerHTML += studentCard;
+        });
+
+        updatePageInfo();
+      }
+
+      // Get WhatsApp Link
+      function getWhatsAppLink(phoneNumber) {
+        // Remove any non-digit characters
+        const cleanedNumber = phoneNumber.replace(/\D/g, "");
+        return `https://wa.me/${cleanedNumber}`;
+      }
+
+      // Format Phone Number
       function formatPhoneNumber(phoneNumber) {
         if (phoneNumber && phoneNumber.length === 10) {
           return `+233${phoneNumber.slice(1)}`;
@@ -214,9 +299,11 @@
         return phoneNumber;
       }
 
+      // Update Pagination Info and Button States
       function updatePageInfo() {
         const pageInfo = document.getElementById("pageInfo");
-        const totalPages = Math.ceil(studentData.length / studentsPerPage);
+        const totalPages =
+          Math.ceil(filteredData.length / studentsPerPage) || 1;
         pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
 
         document.getElementById("prevButton").disabled = currentPage === 1;
@@ -224,19 +311,45 @@
           currentPage === totalPages;
       }
 
+      // Change Page
       function changePage(direction) {
-        const totalPages = Math.ceil(studentData.length / studentsPerPage);
+        const totalPages = Math.ceil(filteredData.length / studentsPerPage);
         currentPage += direction;
         if (currentPage < 1) currentPage = 1;
         if (currentPage > totalPages) currentPage = totalPages;
         displayStudentData();
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
+      // Search for a Student by Index Number
+      function searchStudent() {
+        const searchInput = document.getElementById("searchInput").value.trim();
+        if (searchInput === "") {
+          // If search input is empty, reset the filter
+          filteredData = studentData;
+        } else {
+          // Ensure the search input is a 4-digit number
+          const indexNumber = searchInput.padStart(4, "0");
+          filteredData = studentData.filter((student) => {
+            const studentIndex = student.StudentNumber.slice(4, 8);
+            return studentIndex === indexNumber;
+          });
+        }
+        currentPage = 1;
+        displayStudentData();
+      }
+
+      // Export Phone Numbers
       function exportPhoneNumbers(method) {
         let phoneNumbers = studentData.map((student) => student.PrimaryNumber);
         phoneNumbers = phoneNumbers.filter(
           (phone) => phone && phone.length === 10
         ); // Filter valid phone numbers
+
+        if (phoneNumbers.length === 0) {
+          alert("No valid phone numbers available for export.");
+          return;
+        }
 
         if (method === 1) {
           // Method 1: Export as comma-separated string with +233 prefix
@@ -258,31 +371,36 @@
           link.href = URL.createObjectURL(blob);
           link.download = "phone_numbers_method_2.txt";
           link.click();
-        }  else if (method === 3) {
-                // Method 3: Export as CSV with two columns (Phone and umat_$first_name)
-                const randomNumber = Math.floor(Math.random() * 10000);
+        } else if (method === 3) {
+          // Method 3: Export as CSV with three columns (Phone, Name, Reference)
+          const randomNumber = Math.floor(Math.random() * 10000);
 
-                // Create CSV header
-                let csvContent = 'Phone,Name,Reference\n';  // First row with headers 'Phone' and 'Name'
+          // Create CSV header
+          let csvContent = "Phone,Name,Reference\n"; // First row with headers 'Phone', 'Name', and 'Reference'
 
-                // Create CSV rows with phone numbers and formatted names
-                studentData.forEach(student => {
-                    if (student.PrimaryNumber && student.PrimaryNumber.length === 10) {
-                        const phone = student.PrimaryNumber;  // Phone number without +233
-                        const firstName = student.FirstName || 'unknown'; 
-                        const Reference = student.StudentNumber || 'unknown';
-                        const nameFormatted = `umat_${firstName}`;
-                        csvContent += `${phone},${nameFormatted},${Reference}\n`;  // Append each phone and name row
-                    }
-                });
-
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `umat_${randomNumber}.csv`;
-                link.click();
+          // Create CSV rows with phone numbers and formatted names
+          studentData.forEach((student) => {
+            if (student.PrimaryNumber && student.PrimaryNumber.length === 10) {
+              const phone = `+233${student.PrimaryNumber.slice(1)}`; // Phone number with +233
+              const firstName = student.FirstName || "unknown";
+              const reference = student.StudentNumber || "unknown";
+              const nameFormatted = `umat_${firstName}`;
+              csvContent += `"${phone}","${nameFormatted}","${reference}"\n`; // Append each phone, name, and reference row
             }
+          });
+
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = `umat_${randomNumber}.csv`;
+          link.click();
+        }
       }
+
+      // Optional: Fetch data on page load with default values
+      // window.onload = fetchStudentData;
     </script>
   </body>
 </html>

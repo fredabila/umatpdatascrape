@@ -415,20 +415,32 @@
         const searchInput = document.getElementById("searchInput").value.trim();
         const selectedSchool = document.getElementById("schoolSelect").value;
 
+        console.log("Selected School:", selectedSchool);
+
         filteredData = studentData.filter((student) => {
           const matchesSearch =
             searchInput === "" ||
             student.StudentNumber.slice(4, 8) === searchInput.padStart(4, "0");
+          
           const matchesSchool =
             selectedSchool === "" ||
             (student.examDetails &&
               student.examDetails.InstitutionId === selectedSchool);
+          
+          console.log("Student:", student.StudentNumber);
+          console.log("Matches Search:", matchesSearch);
+          console.log("Matches School:", matchesSchool);
+          console.log("Student Institution ID:", student.examDetails ? student.examDetails.InstitutionId : "N/A");
+
           return matchesSearch && matchesSchool;
         });
+
+        console.log("Filtered Data:", filteredData);
 
         currentPage = 1;
         displayStudentData();
       }
+
 
       // Reset Filters
       function resetFilters() {

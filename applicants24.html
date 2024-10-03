@@ -234,35 +234,30 @@
           const apiUrl = `https://portal.umat.edu.gh/api-v1/live/admissions/api/Admission/GetApplicationBasicData?studentNumber=${studentNumber}`;
 
           fetchPromises.push(
-            fetch(apiUrl)
-              .then((response) => {
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-              })
-              .then(async (data) => {
-                if (data && data.StudentNumber) {
-                  // Fetch exam details for each student
-                  const examDetails = await fetchExamDetails(
-                    data.ApplicationId
-                  );
-                  data.examDetails = examDetails;
-                  console.log(data);
-                  studentData.push(data);
-                } else {
-                  console.warn(
-                    `No data found for student number ${studentNumber}`
-                  );
-                }
-              })
-              .catch((error) => {
-                console.error(
-                  `Error fetching data for student ${studentNumber}:`,
-                  error
-                );
-              })
-          );
+          fetch(apiUrl)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(async (data) => {
+              if (data && data.StudentNumber) {
+                // Fetch exam details for each student
+                const examDetailsArray = await fetchExamDetails(data.ApplicationId);
+                // Use the first item in the array if it exists
+                const examDetails = examDetailsArray.length > 0 ? examDetailsArray[0] : null;
+                data.examDetails = examDetails;
+                console.log(data);
+                studentData.push(data);
+              } else {
+                console.warn(`No data found for student number ${studentNumber}`);
+              }
+            })
+            .catch((error) => {
+              console.error(`Error fetching data for student ${studentNumber}:`, error);
+            })
+        );
         }
 
         try {

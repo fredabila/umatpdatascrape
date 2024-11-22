@@ -99,6 +99,26 @@
           </button>
         </div>
 
+        <!-- Add this after the Search and Filter Bar div -->
+        <div class="bg-blue-500 text-white py-3 px-6 flex justify-between items-center">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="selectAll"
+              class="mr-2"
+              onchange="toggleSelectAll()"
+            />
+            <label for="selectAll">Select All</label>
+          </div>
+          <input
+            type="text"
+            id="phoneSearchInput"
+            placeholder="Search by name or phone"
+            class="px-3 py-2 rounded-md text-black w-64"
+            onkeyup="filterStudentCards()"
+          />
+        </div>
+
         <!-- Student Data Container -->
         <div
           id="studentDataContainer"
@@ -129,22 +149,10 @@
         <!-- Export Buttons -->
         <div class="p-6 flex justify-center space-x-4">
           <button
-            onclick="exportPhoneNumbers(1)"
+            onclick="exportSelectedPhoneNumbers('csv')"
             class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
           >
-            Export Method 1
-          </button>
-          <button
-            onclick="exportPhoneNumbers(2)"
-            class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
-          >
-            Export Method 2
-          </button>
-          <button
-            onclick="exportPhoneNumbers(3)"
-            class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition duration-300"
-          >
-            Export Method 3 (CSV)
+            Export Selected (CSV)
           </button>
         </div>
       </div>
@@ -343,9 +351,16 @@
             : "N/A";
           const studentCard = `
             <div class="bg-gray-50 p-4 rounded-lg shadow">
-              <h3 class="text-lg font-semibold mb-2">${
-                student.ApplicatantFullName
-              }</h3>
+              <div class="flex justify-between items-start mb-2">
+                <input
+                  type="checkbox"
+                  class="student-checkbox mt-1"
+                  data-phone="${formattedPhone}"
+                  data-name="${student.ApplicatantFullName}"
+                  data-ref="${student.StudentNumber}"
+                />
+                <h3 class="text-lg font-semibold">${student.ApplicatantFullName}</h3>
+              </div>
               <p><strong>Student Number:</strong> ${student.StudentNumber}</p>
               <p><strong>Programme:</strong> ${student.ProgrammeFullName}</p>
               <p><strong>Campus:</strong> ${student.Campus}</p>
@@ -511,6 +526,54 @@
         // Optionally, you can fetch student data with default values here
         // fetchStudentData();
       };
+
+      // Add these new functions to the script section
+      function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(checkbox => {
+          if (checkbox.closest('.bg-gray-50').style.display !== 'none') {
+            checkbox.checked = selectAll.checked;
+          }
+        });
+      }
+
+      function filterStudentCards() {
+        const searchTerm = document.getElementById('phoneSearchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('#studentDataContainer > div');
+        
+        cards.forEach(card => {
+          const name = card.querySelector('h3').textContent.toLowerCase();
+          const phone = card.querySelector('strong:contains("Phone:")').nextSibling.textContent.toLowerCase();
+          const matches = name.includes(searchTerm) || phone.includes(searchTerm);
+          card.style.display = matches ? 'block' : 'none';
+        });
+      }
+
+      function exportSelectedPhoneNumbers(format) {
+        const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+        
+        if (selectedCheckboxes.length === 0) {
+          alert('Please select at least one student to export.');
+          return;
+        }
+
+        const randomNumber = Math.floor(Math.random() * 10000);
+        let csvContent = 'Phone,Name,Reference\n';
+
+        selectedCheckboxes.forEach(checkbox => {
+          const phone = checkbox.dataset.phone.replace('+', '');
+          const name = `umat_${checkbox.dataset.name.split(' ')[0].toLowerCase()}`;
+          const reference = checkbox.dataset.ref;
+          csvContent += `"${phone}","${name}","${reference}"\n`;
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `umat_${randomNumber}.csv`;
+        link.click();
+      }
     </script>
   </body>
 </html>

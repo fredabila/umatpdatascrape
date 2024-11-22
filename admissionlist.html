@@ -62,9 +62,23 @@
                     </table>
                 </div>
                 <div class="mt-4 flex justify-between items-center">
-                    <button id="prevButton" onclick="changePage(-1)" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Previous</button>
-                    <span id="pageInfo" class="text-gray-600"></span>
-                    <button id="nextButton" onclick="changePage(1)" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Next</button>
+                    <div class="flex items-center gap-4">
+                        <label for="itemsPerPage" class="text-gray-600">Items per page:</label>
+                        <select id="itemsPerPage" onchange="changeItemsPerPage()" 
+                            class="border rounded-md px-2 py-1 text-gray-600">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="prevButton" onclick="changePage(-1)" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Previous</button>
+                        <span id="pageInfo" class="text-gray-600"></span>
+                        <button id="nextButton" onclick="changePage(1)" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">Next</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -79,7 +93,7 @@
     <script>
         let admittedStudents = [];
         let currentPage = 1;
-        const studentsPerPage = 10;
+        let studentsPerPage = 10;
         let filteredStudents = [];
 
         function fetchAdmittedStudents() {
@@ -219,6 +233,13 @@
                 cleanNumber = '233' + cleanNumber;
             }
             return cleanNumber;
+        }
+
+        function changeItemsPerPage() {
+            const select = document.getElementById('itemsPerPage');
+            studentsPerPage = parseInt(select.value);
+            currentPage = 1;
+            displayAdmittedStudents();
         }
 
         // Initial fetch of admitted students

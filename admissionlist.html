@@ -286,11 +286,14 @@
             }
 
             if (confirm(`Are you sure you want to delete ${checkboxes.length} selected student(s)?`)) {
+                let displayedStudents = filteredStudents.length > 0 ? filteredStudents : admittedStudents;
+                
                 Array.from(checkboxes).forEach(checkbox => {
-                    const student = filteredStudents.length > 0 
-                        ? filteredStudents[parseInt(checkbox.value)]
-                        : admittedStudents[parseInt(checkbox.value)];
-                    deletedStudents.add(student.StudentNumber);
+                    const index = parseInt(checkbox.value);
+                    const student = displayedStudents[index];
+                    if (student) {
+                        deletedStudents.add(student.StudentNumber);
+                    }
                 });
 
                 // Save updated deletedStudents to localStorage

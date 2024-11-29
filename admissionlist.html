@@ -38,6 +38,10 @@
                         class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300">
                         Export Selected
                     </button>
+                    <button onclick="deleteSelectedStudents()" 
+                        class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300">
+                        Delete Selected
+                    </button>
                 </div>
             </div>
             <div class="p-6">
@@ -269,6 +273,33 @@
             if (confirm('Are you sure you want to delete this student from the list?')) {
                 deletedStudents.add(studentNumber);
                 localStorage.setItem('deletedStudents', JSON.stringify([...deletedStudents]));
+                displayAdmittedStudents();
+            }
+        }
+
+        function deleteSelectedStudents() {
+            const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+            
+            if (checkboxes.length === 0) {
+                alert('Please select at least one student to delete');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${checkboxes.length} selected student(s)?`)) {
+                Array.from(checkboxes).forEach(checkbox => {
+                    const student = filteredStudents.length > 0 
+                        ? filteredStudents[parseInt(checkbox.value)]
+                        : admittedStudents[parseInt(checkbox.value)];
+                    deletedStudents.add(student.StudentNumber);
+                });
+
+                // Save updated deletedStudents to localStorage
+                localStorage.setItem('deletedStudents', JSON.stringify([...deletedStudents]));
+                
+                // Reset the select all checkbox
+                document.getElementById('selectAll').checked = false;
+                
+                // Refresh the display
                 displayAdmittedStudents();
             }
         }

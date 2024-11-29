@@ -54,6 +54,7 @@
                                 <th class="py-2 px-4 border-b text-left">Campus</th>
                                 <th class="py-2 px-4 border-b text-left">PIN Code</th>
                                 <th class="py-2 px-4 border-b text-left">Actions</th>
+                                <th class="py-2 px-4 border-b text-left">Delete</th>
                             </tr>
                         </thead>
                         <tbody id="admittedStudentsTableBody">
@@ -95,6 +96,7 @@
         let currentPage = 1;
         let studentsPerPage = 10;
         let filteredStudents = [];
+        let deletedStudents = new Set(JSON.parse(localStorage.getItem('deletedStudents') || '[]'));
 
         function fetchAdmittedStudents() {
             const loader = document.getElementById('loader');
@@ -116,9 +118,15 @@
 
         function displayAdmittedStudents() {
             const tableBody = document.getElementById('admittedStudentsTableBody');
+            let displayedStudents = filteredStudents.length > 0 ? filteredStudents : admittedStudents;
+            
+            // Filter out deleted students
+            displayedStudents = displayedStudents.filter(student => 
+                !deletedStudents.has(student.StudentNumber)
+            );
+
             const startIndex = (currentPage - 1) * studentsPerPage;
             const endIndex = startIndex + studentsPerPage;
-            const displayedStudents = filteredStudents.length > 0 ? filteredStudents : admittedStudents;
             const pageStudents = displayedStudents.slice(startIndex, endIndex);
 
             tableBody.innerHTML = '';
@@ -139,6 +147,12 @@
                                 class="bg-green-500 text-white px-2 py-1 rounded-md hover:bg-green-600 transition duration-300">
                                 WhatsApp
                             </a>
+                        </td>
+                        <td class="py-2 px-4 border-b">
+                            <button onclick="deleteStudent('${student.StudentNumber}')"
+                                class="bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition duration-300">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -207,13 +221,19 @@
                 const student = filteredStudents.length > 0 
                     ? filteredStudents[parseInt(checkbox.value)]
                     : admittedStudents[parseInt(checkbox.value)];
-                return getWhatsAppNumber(student.PrimaryNumber);
+                
+                // Add to deleted/tracked list after export
+                deletedStudents.add(student.StudentNumber);
+                return "+" + getWhatsAppNumber(student.PrimaryNumber);
             });
 
             if (selectedNumbers.length === 0) {
                 alert('Please select at least one student to export');
                 return;
             }
+
+            // Save updated deletedStudents to localStorage
+            localStorage.setItem('deletedStudents', JSON.stringify([...deletedStudents]));
 
             const csvContent = selectedNumbers.join(',');
             const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -223,6 +243,9 @@
             a.download = 'phone_numbers.csv';
             a.click();
             window.URL.revokeObjectURL(url);
+            
+            // Refresh the display to remove exported students
+            displayAdmittedStudents();
         }
 
         function getWhatsAppNumber(phoneNumber) {
@@ -240,6 +263,14 @@
             studentsPerPage = parseInt(select.value);
             currentPage = 1;
             displayAdmittedStudents();
+        }
+
+        function deleteStudent(studentNumber) {
+            if (confirm('Are you sure you want to delete this student from the list?')) {
+                deletedStudents.add(studentNumber);
+                localStorage.setItem('deletedStudents', JSON.stringify([...deletedStudents]));
+                displayAdmittedStudents();
+            }
         }
 
         // Initial fetch of admitted students

@@ -138,7 +138,7 @@
                 const row = `
                     <tr>
                         <td class="py-2 px-4 border-b">
-                            <input type="checkbox" class="student-checkbox" data-student-number="${student.StudentNumber}">
+                            <input type="checkbox" class="student-checkbox" value="${index}" data-student-number="${student.StudentNumber}">
                         </td>
                         <td class="py-2 px-4 border-b">${student.StudentNumber}</td>
                         <td class="py-2 px-4 border-b">${student.ApplicatantFullName}</td>
@@ -221,14 +221,18 @@
         function exportSelectedNumbers() {
             const checkboxes = document.querySelectorAll('.student-checkbox:checked');
             const selectedNumbers = Array.from(checkboxes).map(checkbox => {
-                const student = filteredStudents.length > 0 
-                    ? filteredStudents[parseInt(checkbox.value)]
-                    : admittedStudents[parseInt(checkbox.value)];
+                const displayedStudents = filteredStudents.length > 0 ? filteredStudents : admittedStudents;
+                const student = displayedStudents[parseInt(checkbox.value)];
+                
+                if (!student) {
+                    console.error('Student not found for index:', checkbox.value);
+                    return null;
+                }
                 
                 // Add to deleted/tracked list after export
                 deletedStudents.add(student.StudentNumber);
                 return "+" + getWhatsAppNumber(student.PrimaryNumber);
-            });
+            }).filter(number => number !== null);
 
             if (selectedNumbers.length === 0) {
                 alert('Please select at least one student to export');

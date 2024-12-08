@@ -138,7 +138,10 @@
                 const row = `
                     <tr>
                         <td class="py-2 px-4 border-b">
-                            <input type="checkbox" class="student-checkbox" value="${index}" data-student-number="${student.StudentNumber}">
+                            <input type="checkbox" class="student-checkbox" 
+                                data-student-number="${student.StudentNumber}"
+                                data-primary-number="${student.PrimaryNumber}"
+                                data-index="${startIndex + index}">
                         </td>
                         <td class="py-2 px-4 border-b">${student.StudentNumber}</td>
                         <td class="py-2 px-4 border-b">${student.ApplicatantFullName}</td>
@@ -222,16 +225,17 @@
             const checkboxes = document.querySelectorAll('.student-checkbox:checked');
             const selectedNumbers = Array.from(checkboxes).map(checkbox => {
                 const displayedStudents = filteredStudents.length > 0 ? filteredStudents : admittedStudents;
-                const student = displayedStudents[parseInt(checkbox.value)];
+                const studentNumber = checkbox.dataset.studentNumber;
+                const primaryNumber = checkbox.dataset.primaryNumber;
                 
-                if (!student) {
-                    console.error('Student not found for index:', checkbox.value);
+                if (!primaryNumber) {
+                    console.error('Phone number not found for student:', studentNumber);
                     return null;
                 }
                 
                 // Add to deleted/tracked list after export
-                deletedStudents.add(student.StudentNumber);
-                return "+" + getWhatsAppNumber(student.PrimaryNumber);
+                deletedStudents.add(studentNumber);
+                return "+" + getWhatsAppNumber(primaryNumber);
             }).filter(number => number !== null);
 
             if (selectedNumbers.length === 0) {

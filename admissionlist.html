@@ -125,7 +125,7 @@
             const loader = document.getElementById('loader');
             loader.classList.remove('hidden');
 
-            const apiUrl = `https://apply.umat.edu.gh/api/admitted-applicants?searchText=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${studentsPerPage}&sortBy=admittedDate&sortOrder=desc`;
+            const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://apply.umat.edu.gh/api/admitted-applicants?searchText=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${studentsPerPage}&sortBy=admittedDate&sortOrder=desc`)}`;
 
             fetch(apiUrl)
                 .then(response => response.json())
